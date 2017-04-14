@@ -39,11 +39,17 @@ export default new GraphQLSchema({
     fields: () => ({
       links: {
         type: new GraphQLList(Link),
-        resolve: () => station.get(`links`),
+        args: {
+          id: { type: GraphQLID },
+        },
+        resolve: station.get(`links`),
       },
       tags: {
         type: new GraphQLList(Tag),
-        resolve: () => station.get(`tags`),
+        args: {
+          id: { type: GraphQLID },
+        },
+        resolve: station.get(`tags`),
       },
     }),
   }),
