@@ -4,6 +4,7 @@ import {
   GraphQLList,
   GraphQLString,
   GraphQLID,
+  GraphQLNonNull,
 } from 'graphql'
 
 import * as station from '../station'
@@ -33,24 +34,56 @@ let Tag = new GraphQLObjectType({
   }),
 })
 
-export default new GraphQLSchema({
-  query: new GraphQLObjectType({
-    name: `Query`,
-    fields: () => ({
-      links: {
-        type: new GraphQLList(Link),
-        args: {
-          id: { type: GraphQLID },
-        },
-        resolve: station.get(`links`),
+let Query = new GraphQLObjectType({
+  name: `Query`,
+  fields: () => ({
+    links: {
+      type: new GraphQLList(Link),
+      args: {
+        id: { type: GraphQLID },
       },
-      tags: {
-        type: new GraphQLList(Tag),
-        args: {
-          id: { type: GraphQLID },
-        },
-        resolve: station.get(`tags`),
+      resolve: station.get(`links`),
+    },
+    tags: {
+      type: new GraphQLList(Tag),
+      args: {
+        id: { type: GraphQLID },
       },
-    }),
+      resolve: station.get(`tags`),
+    },
   }),
 })
+
+let Mutation = new GraphQLObjectType({
+  name: `Mutation`,
+  fields: () => ({
+    createLink: {
+      type: Link,
+      args: {
+        url: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+        description: {
+          type: GraphQLString,
+        },
+      },
+      resolve: station.create(`links`),
+    },
+    createTag: {
+      type: Tag,
+      args: {
+        name: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve: station.create(`tags`),
+    },
+  }),
+})
+
+let Schema = new GraphQLSchema({
+  query: Query,
+  mutation: Mutation,
+})
+
+export default Schema
