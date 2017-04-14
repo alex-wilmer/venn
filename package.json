@@ -18,7 +18,7 @@
     "nodemon": "^1.11.0"
   },
   "scripts": {
-    "api": "nodemon api/index.js",
+    "api": "nodemon back/index.js",
     "test": "jest"
   }
 }

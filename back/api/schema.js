@@ -6,20 +6,17 @@ import {
   GraphQLID,
 } from 'graphql'
 
-import * as db from './fakeData'
+import * as station from '../station'
 
 let Link = new GraphQLObjectType({
   name: `Link`,
   fields: () => ({
+    id: { type: GraphQLID },
     url: { type:  GraphQLString },
     description: { type: GraphQLString },
-    id: { type: GraphQLID },
     tags: {
       type: new GraphQLList(Tag),
-      resolve: ({ id }) => {
-        let edges = db.edges.filter(x => x.link_id === id)
-        return db.tags.filter(x => edges.find(y => y.tag_id === x.id))
-      },
+      resolve: station.joinOne(`link`, `tag`),
     },
   }),
 })
@@ -27,7 +24,12 @@ let Link = new GraphQLObjectType({
 let Tag = new GraphQLObjectType({
   name: `Tag`,
   fields: () => ({
+    id: { type: GraphQLID },
     name: { type: GraphQLString },
+    links: {
+      type: new GraphQLList(Link),
+      resolve: station.joinOne(`tag`, `link`),
+    },
   }),
 })
 
@@ -37,11 +39,11 @@ export default new GraphQLSchema({
     fields: () => ({
       links: {
         type: new GraphQLList(Link),
-        resolve: () => db.links,
+        resolve: () => station.get(`links`),
       },
       tags: {
         type: new GraphQLList(Tag),
-        resolve: () => db.tags,
+        resolve: () => station.get(`tags`),
       },
     }),
   }),

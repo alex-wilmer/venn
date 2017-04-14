@@ -1,3 +1,7 @@
 {
-  "extends": "minimal"
+  "extends": "minimal",
+  "globals": {
+    "test": true,
+    "expect": true
+  }
 }
