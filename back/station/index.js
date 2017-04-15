@@ -1,7 +1,10 @@
 import * as db from '../fakeData'
+let config = require(`../../knexfile.js`)
+let env = `development`
+let knex = require(`knex`)(config[env])
 
 export let get = type => (_, { id }) =>
-  id ? db[`${type}s`].filter(x => x.id === id) : db[`${type}s`]
+  id ? knex(`${type}s`).where({ id }).select() : knex(`${type}s`).select()
 
 export let create = (parentType, childType) => (_, args) => {
   let parentId = +new Date()
