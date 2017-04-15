@@ -5,6 +5,7 @@ import {
   GraphQLString,
   GraphQLID,
   GraphQLNonNull,
+  GraphQLInputObjectType,
 } from 'graphql'
 
 import * as station from '../station'
@@ -12,9 +13,15 @@ import * as station from '../station'
 let Link = new GraphQLObjectType({
   name: `Link`,
   fields: () => ({
-    id: { type: GraphQLID },
-    url: { type:  GraphQLString },
-    description: { type: GraphQLString },
+    id: {
+      type: GraphQLID,
+    },
+    url: {
+      type: GraphQLString,
+    },
+    description: {
+      type: GraphQLString,
+    },
     tags: {
       type: new GraphQLList(Tag),
       resolve: station.joinOne(`link`, `tag`),
@@ -25,8 +32,12 @@ let Link = new GraphQLObjectType({
 let Tag = new GraphQLObjectType({
   name: `Tag`,
   fields: () => ({
-    id: { type: GraphQLID },
-    name: { type: GraphQLString },
+    id: {
+      type: GraphQLID,
+    },
+    name: {
+      type: GraphQLString,
+    },
     links: {
       type: new GraphQLList(Link),
       resolve: station.joinOne(`tag`, `link`),
@@ -40,16 +51,29 @@ let Query = new GraphQLObjectType({
     links: {
       type: new GraphQLList(Link),
       args: {
-        id: { type: GraphQLID },
+        id: {
+          type: GraphQLID,
+        },
       },
-      resolve: station.get(`links`),
+      resolve: station.get(`link`),
     },
     tags: {
       type: new GraphQLList(Tag),
       args: {
-        id: { type: GraphQLID },
+        id: {
+          type: GraphQLID,
+        },
       },
-      resolve: station.get(`tags`),
+      resolve: station.get(`tag`),
+    },
+  }),
+})
+
+let TagInput = new GraphQLInputObjectType({
+  name: `TagInput`,
+  fields: () => ({
+    name: {
+      type: new GraphQLNonNull(GraphQLString),
     },
   }),
 })
@@ -66,8 +90,11 @@ let Mutation = new GraphQLObjectType({
         description: {
           type: GraphQLString,
         },
+        tags: {
+          type: new GraphQLList(TagInput),
+        },
       },
-      resolve: station.create(`links`),
+      resolve: station.create(`link`, `tag`),
     },
     createTag: {
       type: Tag,
@@ -76,7 +103,7 @@ let Mutation = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: station.create(`tags`),
+      resolve: station.create(`tag`),
     },
   }),
 })
