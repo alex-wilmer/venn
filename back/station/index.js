@@ -1,4 +1,3 @@
-import * as db from '../fakeData'
 let config = require(`../../knexfile.js`)
 let env = `development`
 let knex = require(`knex`)(config[env])
@@ -6,51 +5,48 @@ let knex = require(`knex`)(config[env])
 export let get = type => (_, { id }) =>
   id ? knex(`${type}s`).where({ id }).select() : knex(`${type}s`).select()
 
-export let create = (parentType, childType) => (_, args) => {
-  let parentId = +new Date()
+export let create = (parentType, childType) => async (_, args) => {
+  let [scalarArgs, objectArgs] = Object.entries(args).reduce((acc, [k, v]) => {
+    if (typeof v === `object`) {
+      acc[1] = { ...acc[1], [k]: v }
+    } else {
+      acc[0] = { ...acc[0], [k]: v }
+    }
+
+    return acc
+  }, [])
+
+  let [ parentId ] = await knex(`${parentType}s`).insert(scalarArgs).returning(`id`)
 
   let item = {
     id: parentId,
-    ...args,
+    ...scalarArgs,
   }
 
-  if (args[`${childType}s`]) {
-    item[`${childType}s`] = []
-
-    args[`${childType}s`].forEach(x => {
-      let childId = +new Date()
+  if (objectArgs[`${childType}s`]) {
+    item[`${childType}s`] = await Promise.all(objectArgs[`${childType}s`].map(async childArgs => {
+      let [ childId ] = await knex(`${childType}s`).insert(childArgs).returning(`id`)
 
       let childItem = {
         id: childId,
-        ...x,
+        ...childArgs,
       }
 
-      db[`${childType}s`] = [
-        ...db[`${childType}s`], childItem,
-      ]
+      let edge = {
+        [`${parentType}_id`]: parentId,
+        [`${childType}_id`]: childId,
+      }
 
-      db.edges = [
-        ...db.edges,
-        {
-          id: +new Date(),
-          [`${parentType}_id`]: parentId,
-          [`${childType}_id`]: childId,
-        },
-      ]
+      await knex(`edges`).insert(edge)
 
-      item[`${childType}s`] = [
-        ...item[`${childType}s`],
-        childItem,
-      ]
-    })
+      return childItem
+    }))
   }
-
-  db[`${parentType}s`] = [...db[`${parentType}s`], item]
 
   return item
 }
 
-export let joinOne = (parentType, childType) => ({ id }) => {
-  let edges = db.edges.filter(x => x[`${parentType}_id`] === id)
-  return db[`${childType}s`].filter(x => edges.find(y => y[`${childType}_id`] === x.id))
+export let joinOne = (parentType, childType) => async ({ id }) => {
+  let edges = await knex(`edges`).select().where({ [`${parentType}_id`]: id })
+  return await knex(`${childType}s`).select().whereIn(`id`, edges.map(x => x[`${childType}_id`]))
 }

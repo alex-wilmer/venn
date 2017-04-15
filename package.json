@@ -21,7 +21,7 @@
   },
   "scripts": {
     "api": "nodemon back/index.js",
-    "knex": "knex migrate:make venn",
+    "knex": "knex",
     "test": "jest"
   }
 }
