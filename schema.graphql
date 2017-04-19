@@ -1,0 +1,26 @@
+type Link {
+  id: ID
+  url: String
+  description: String
+  tags: [Tag]
+}
+
+type Mutation {
+  createLink(url: String!, description: String, tags: [TagInput]): Link
+  createTag(name: String!): Tag
+}
+
+type Query {
+  links(id: ID): [Link]
+  tags(id: ID): [Tag]
+}
+
+type Tag {
+  id: ID
+  name: String
+  links: [Link]
+}
+
+input TagInput {
+  name: String!
+}

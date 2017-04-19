@@ -3,15 +3,8 @@ require(`babel-register`)({
     `transform-es2015-modules-commonjs`,
     `transform-async-to-generator`,
     `transform-object-rest-spread`,
+    `relay`,
   ],
 })
 
-let config = require(`../knexfile.js`)
-let env = `development`
-let knex = require(`knex`)(config[env])
-
-module.exports = knex
-
-knex.migrate.latest([config]) 
-
-require(`./api/server`)
+require(`./${process.env.ENTRY}`)

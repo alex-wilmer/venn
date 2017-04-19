@@ -1,6 +1,12 @@
 import express from 'express'
 import graphqlHTTP from 'express-graphql'
 import schema from './schema'
+import config from '../knexfile'
+
+let env = `development`
+let knex = require(`knex`)(config[env])
+
+knex.migrate.latest([config])
 
 let PORT = 5555
 
